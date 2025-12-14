@@ -21,6 +21,11 @@ pub mod vault {
     pub fn withdraw(ctx: Context<WithdrawVault>, amount: u64) -> Result<()> {
         withdraw_vault(ctx, amount)
     }
+    pub fn close(ctx: Context<CloseVault>) -> Result<()> {
+        close_vault(ctx)
+    }
+
+   
 }
 
 #[derive(Accounts)]
