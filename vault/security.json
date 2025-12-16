@@ -1,0 +1,17 @@
+{
+    "name": "Anchor Vault Program",
+    "project_url": "https://github.com/sol-warrior/solana-smart-contracts/tree/main/vault",
+    "contacts": [
+        {
+            "type": "social",
+            "value": "https://x.com/warriorofsol"
+        },
+        {
+            "type": "github",
+            "value": "https://github.com/sol-warrior"
+        }
+    ],
+    "preferred_languages": [
+        "en"
+    ]
+}
