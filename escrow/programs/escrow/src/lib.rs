@@ -18,20 +18,14 @@ pub mod escrow {
     ) -> Result<()> {
         maker::handler(ctx, seed, token_mint_n_expected, amount)
     }
+
     #[instruction(discriminator = 1)]
     pub fn taker(ctx: Context<Taker>) -> Result<()> {
         taker::handler(ctx)
     }
-    // #[instruction(discriminator = 2)]
-    // pub fn refund(ctx: Context<Refund>) -> Result<()> {
-    //     Ok(())
-    //     //...
-    // }
 
-    // pub fn take(ctx: Context<Take>) -> Result<()> {
-    //     instructions::take::handler(ctx)
-    // }
-    // pub fn refund(ctx: Context<Refund>) -> Result<()> {
-    //     instructions::refund::handler(ctx)
-    // }
+    #[instruction(discriminator = 2)]
+    pub fn refund(ctx: Context<Refund>) -> Result<()> {
+        refund::handler(ctx)
+    }
 }
