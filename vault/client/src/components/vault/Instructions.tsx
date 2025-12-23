@@ -4,7 +4,11 @@ import { Button } from "../ui/button";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useSolana } from "../solana-provider";
 import { useWalletAccountTransactionSendingSigner } from "@solana/react";
-import { getDepositInstruction } from "@/lib/programs/generated_idl_vault";
+import {
+  getCloseInstruction,
+  getDepositInstruction,
+  getWithdrawInstruction,
+} from "@/lib/programs/generated_idl_vault";
 import { BN } from "bn.js";
 import {
   address,
@@ -101,6 +105,88 @@ export default function Instructions({
     }
   };
 
+  const handleWithdraw = async () => {
+    if (!isConnected || !signer || !account) return;
+
+    setIsLoading(true);
+    try {
+      const userPda = await getUserVaultPdas(account.address);
+      const { value: latestBlockhash } = await rpc
+        .getLatestBlockhash({ commitment: "confirmed" })
+        .send();
+
+      const ix = getWithdrawInstruction({
+        amount: 0.01 * 1_000_000_000,
+        user: signer,
+        userVault: address(userPda.userVault),
+        userVaultLamports: address(userPda.userVaultLamports),
+        systemProgram: SYSTEM_PROGRAM_ADDRESS,
+      });
+
+      console.log("Withdraw Ix:", ix);
+
+      const message = pipe(
+        createTransactionMessage({ version: 0 }),
+        (m) => setTransactionMessageFeePayerSigner(signer, m),
+        (m) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, m),
+        (m) => appendTransactionMessageInstruction(ix, m)
+      );
+
+      console.log("Message:", message);
+
+      const signature = await signAndSendTransactionMessageWithSigners(message);
+      const signatureStr = getBase58Decoder().decode(signature) as Signature;
+
+      // setTxSignature(signatureStr);
+      console.log("Signature:", signature);
+      console.log("Signature Str:", signatureStr);
+    } catch (error) {
+      console.error("Withdraw failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = async () => {
+    if (!isConnected || !signer || !account) return;
+
+    setIsLoading(true);
+    try {
+      const userPda = await getUserVaultPdas(account.address);
+      const { value: latestBlockhash } = await rpc
+        .getLatestBlockhash({ commitment: "confirmed" })
+        .send();
+
+      const ix = getCloseInstruction({
+        user: signer,
+        userVault: address(userPda.userVault),
+        userVaultLamports: address(userPda.userVaultLamports),
+        systemProgram: SYSTEM_PROGRAM_ADDRESS,
+      });
+
+      console.log("Close Ix:", ix);
+
+      const message = pipe(
+        createTransactionMessage({ version: 0 }),
+        (m) => setTransactionMessageFeePayerSigner(signer, m),
+        (m) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, m),
+        (m) => appendTransactionMessageInstruction(ix, m)
+      );
+
+      console.log("Message:", message);
+
+      const signature = await signAndSendTransactionMessageWithSigners(message);
+      const signatureStr = getBase58Decoder().decode(signature) as Signature;
+
+      // setTxSignature(signatureStr);
+      console.log("Signature:", signature);
+      console.log("Signature Str:", signatureStr);
+    } catch (error) {
+      console.error("Close failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div>
       <div className="flex items-center justify-between gap-5">
@@ -115,8 +201,14 @@ export default function Instructions({
           {" "}
           Deposit SOL{" "}
         </Button>
-        <Button className="cursor-pointer"> Withdraw SOL </Button>
-        <Button className="cursor-pointer"> Close Vault </Button>
+        <Button onClick={handleWithdraw} className="cursor-pointer">
+          {" "}
+          Withdraw SOL{" "}
+        </Button>
+        <Button onClick={handleClose} className="cursor-pointer">
+          {" "}
+          Close Vault{" "}
+        </Button>
       </div>
     </div>
   );
