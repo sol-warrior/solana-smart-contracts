@@ -46,14 +46,14 @@ describe("LiteSVM: Escrow", () => {
         const usdcMintAuthority = PublicKey.unique();
         const bonkMintAuthority = PublicKey.unique();
 
-        // 3. Allocate space for Mint account
+        //  Allocate space for Mint account
         const usdcMintData = Buffer.alloc(MINT_SIZE);
         const bonkMintData = Buffer.alloc(MINT_SIZE);
 
-        // 4. Encode a VALID SPL Mint (USDC)
+        // Encode a VALID SPL Mint (USDC)
         MintLayout.encode(
             {
-                mintAuthorityOption: 1,          // authority exists
+                mintAuthorityOption: 1,  // authority exists
                 mintAuthority: usdcMintAuthority,
                 supply: BigInt(0),
                 decimals: 6,
@@ -64,7 +64,7 @@ describe("LiteSVM: Escrow", () => {
             usdcMintData
         );
 
-        // 4. Encode a VALID SPL Mint (BONK)
+        //  Encode a VALID SPL Mint (BONK)
         MintLayout.encode(
             {
                 mintAuthorityOption: 1,
@@ -80,7 +80,7 @@ describe("LiteSVM: Escrow", () => {
 
 
         svm.setAccount(usdcMint, {
-            lamports: 1_000_000_000,           // rent-exempt enough
+            lamports: 1_000_000_000,  // rent-exempt enough
             data: usdcMintData,
             owner: TOKEN_PROGRAM_ID,
             executable: false,
@@ -95,19 +95,21 @@ describe("LiteSVM: Escrow", () => {
 
         // Check BONK mint
         const bonkMintAcct = svm.getAccount(bonkMint);
-        expect(bonkMintAcct).to.not.be.null;
         const bMintData = bonkMintAcct?.data;
-        expect(bMintData).to.not.be.undefined;
         const bonkDecoded = MintLayout.decode(bMintData);
+
+        expect(bonkMintAcct).to.not.be.null;
+        expect(bMintData).to.not.be.undefined;
         expect(bonkDecoded.isInitialized).to.equal(true);
         expect(bonkDecoded.decimals).to.equal(6);
 
         // Check USDC mint
         const usdcMintAcct = svm.getAccount(usdcMint);
-        expect(usdcMintAcct).to.not.be.null;
         const uMintData = usdcMintAcct?.data;
-        expect(uMintData).to.not.be.undefined;
         const usdcDecoded = MintLayout.decode(uMintData);
+
+        expect(usdcMintAcct).to.not.be.null;
+        expect(uMintData).to.not.be.undefined;
         expect(usdcDecoded.isInitialized).to.equal(true);
         expect(usdcDecoded.decimals).to.equal(6);
 
