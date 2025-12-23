@@ -139,7 +139,7 @@ describe("LiteSVM: Escrow", () => {
         expect(decoded.amount, "Maker's ATA should hold the correct initial USDC amount").to.eql(usdcToOwn);
     });
 
-    it("Maker: Creates an escrow and deposits", async () => {
+    it("Maker: Creates an escrow and deposits funds", async () => {
         const ixArgs = {
             amount: new anchor.BN(3000 * 10 ** 6), //3000 USDC giving
             token_mint_n_expected: new anchor.BN(6000 * 10 ** 6), // 6000 BONK expecting
@@ -191,6 +191,54 @@ describe("LiteSVM: Escrow", () => {
         assert.equal(ixArgs.token_mint_n_expected.toNumber(), escrowAcc.token_mint_n_expected.toNumber(), "Escrow token_mint_n_expected should match requested");
         assert.equal(ixArgs.amount.toNumber(), Number(vaultAtaMAccInfo.amount), "Vault account should contain exactly deposited USDC");
         assert.equal(Number(usdcToOwn) - Number(ixArgs.amount), Number(makerAtaMAccInfo.amount), "Maker's ATA should contain remaining USDC after deposit");
+    })
+
+
+
+    it("Refund: Close an escrow and withdraws funds", async () => {
+        const ixArgs = {
+            amount: new anchor.BN(3000 * 10 ** 6), //3000 USDC giving
+            token_mint_n_expected: new anchor.BN(6000 * 10 ** 6), // 6000 BONK expecting
+            seed: new anchor.BN(1)
+
+        }
+        const data = coder.instruction.encode("refund", {});
+
+        const ix = new TransactionInstruction({
+            keys: [
+                { pubkey: payer.publicKey, isSigner: true, isWritable: true },
+                { pubkey: escrowPda, isSigner: false, isWritable: true },
+                { pubkey: usdcMint, isSigner: false, isWritable: false },
+                { pubkey: bonkMint, isSigner: false, isWritable: false },
+                { pubkey: makerAtaM, isSigner: false, isWritable: true },
+                { pubkey: vaultAtaM, isSigner: false, isWritable: true },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }
+            ],
+            programId,
+            data
+        })
+
+        const tx = new Transaction().add(ix);
+        tx.feePayer = payer.publicKey;
+        tx.recentBlockhash = svm.latestBlockhash();
+        tx.sign(payer);
+        svm.sendTransaction(tx);
+
+        const escrowAccount = svm.getAccount(escrowPda);
+        assert.isNull(escrowAccount, "Escrow account should be closed after refund");
+
+        const vaultAccount = svm.getAccount(vaultAtaM);
+        assert.isNull(vaultAccount, "Vault ATA should be closed after refund");
+
+        const makerAtaMAccAfter = svm.getAccount(makerAtaM);
+        const makerAtaMAccInfoAfter = AccountLayout.decode(makerAtaMAccAfter.data);
+        assert.equal(
+            Number(makerAtaMAccInfoAfter.amount),
+            Number(usdcToOwn),
+            "Maker's ATA should be fully refunded"
+        );
     })
 });
 
