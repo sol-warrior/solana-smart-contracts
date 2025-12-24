@@ -8,6 +8,17 @@ A trustless token swap protocol built on Solana that enables secure peer-to-peer
 
 The Escrow program allows two parties to exchange tokens in a completely trustless manner. One party (the **Maker**) creates an escrow offer by depositing their tokens and specifying what they want in return. Another party (the **Taker**) can then fulfill this offer by providing the requested tokens, triggering an atomic swap.
 
+## 📊 Program Details
+
+- **Program ID**: `KMYaZW7KUS6atp5F645vZ5ynuR6aZ7TueiTtTCRes6e`
+- **IDL Account**: `7PeFYqJkexyRgbGM4gyCbCatKqN3Th3UjhSZ1B5eMVUn`
+- **Deployed Signature**: `42x8yZCB6ufEpCDq5YAuKF1gozj8Kj4TudSDy92aTSiXpLLT8iQLDnceG3wz4zTceAHx8AC8AVApMwkt9qAHZUxc`
+- **Security Metadata**: `7bnqA5qg94DCKuiAAzzJVit88iByuwJfpsUvc887PekW`
+- **Framework**: Anchor 0.32.1
+- **Language**: Rust
+- **Blockchain**: Solana
+- **Token Standard**: SPL Token (Token-2022 compatible)
+
 ## 👥 User Stories
 
 ### 🤝 As a Token Trader
@@ -237,16 +248,6 @@ yarn ts-mocha tests/litesvm.test.ts
 - ✅ Successful token swap fulfillment
 - ✅ Refund functionality
 - ✅ Account validation and security checks
-
-## 📊 Program Details
-
-- **Program ID**: `KMYaZW7KUS6atp5F645vZ5ynuR6aZ7TueiTtTCRes6e`
-- **IDL Account**: `7PeFYqJkexyRgbGM4gyCbCatKqN3Th3UjhSZ1B5eMVUn`
-- **Deployed Signature**: `42x8yZCB6ufEpCDq5YAuKF1gozj8Kj4TudSDy92aTSiXpLLT8iQLDnceG3wz4zTceAHx8AC8AVApMwkt9qAHZUxc`
-- **Framework**: Anchor 0.32.1
-- **Language**: Rust
-- **Blockchain**: Solana
-- **Token Standard**: SPL Token (Token-2022 compatible)
 
 ## 🔐 Security Considerations
 

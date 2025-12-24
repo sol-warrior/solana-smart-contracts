@@ -1,0 +1,12 @@
+{
+    "name": "Anchor Escrow Program",
+    "project_url": "https://github.com/sol-warrior/solana-smart-contracts/tree/main/escrow",
+    "contacts": [
+        "github:https://github.com/sol-warrior",
+        "twitter:https://x.com/warriorofsol"
+    ],
+    "preferred_languages": [
+        "en"
+    ],
+    "source_code": "https://github.com/sol-warrior/solana-smart-contracts/tree/main/escrow"
+}
