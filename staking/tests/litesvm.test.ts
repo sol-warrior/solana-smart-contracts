@@ -1,4 +1,4 @@
-import { LiteSVM } from "litesvm";
+import { LiteSVM, TransactionMetadata } from "litesvm";
 import anchor from "@coral-xyz/anchor";
 import { assert, expect } from "chai";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
@@ -239,6 +239,34 @@ describe("LiteSVM: Staking", () => {
         assert.equal(poolAcc.total_staked.toNumber(), Number(stakedTokenAmount) - Number(unstakeSomeTokenAmount), " Pool token account must descrease the user's stake token amount");
     });
 
+    it("Get points for stake token", () => {
+        const ix = new TransactionInstruction({
+            keys: [
+                { pubkey: staker.publicKey, isSigner: true, isWritable: false },
+                { pubkey: poolPda, isSigner: false, isWritable: false },
+                { pubkey: userStakePda, isSigner: false, isWritable: false }
+            ],
+            programId,
+            data: Buffer.from([2]) //get_points
+        });
+
+        const tx = new Transaction().add(ix);
+        tx.feePayer = staker.publicKey;
+        tx.recentBlockhash = svm.latestBlockhash();
+        tx.sign(staker);
+
+        const res = svm.sendTransaction(tx);
+
+        const resData = (res as TransactionMetadata).returnData();
+        // console.log(resData.toString())
+
+        const buffData = Buffer.from(resData.data())
+        const getPointData = buffData.readBigUInt64LE(0)
+        // console.log(getPointData);
+
+        expect(Number(getPointData) === 0)
+
+    })
 
     it("UnStakeAll USDC Token", async () => {
         const ix = new TransactionInstruction({
@@ -259,7 +287,7 @@ describe("LiteSVM: Staking", () => {
             // The staking program expects the first bytes of the data buffer to match the discriminator for the instruction to the invoke.
             // In the IDL, "unstake_all" has a discriminator of [5], so we must send Buffer.from([5]).
             // Buffer.from("unstake_all") is a UTF-8 string, which will not match the expected single-byte discriminator and the program will reject the transaction.
-            data: Buffer.from([5])
+            data: Buffer.from([5])//unstake_all
         })
 
         const tx = new Transaction().add(ix);
@@ -281,4 +309,6 @@ describe("LiteSVM: Staking", () => {
         assert.isNull(userStakeAcc, "UserStake account should be closed after unstake all token");
 
     });
+
+
 })
