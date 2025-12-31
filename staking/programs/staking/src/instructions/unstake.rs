@@ -81,7 +81,7 @@ impl<'info> Unstake<'info> {
     }
 
     ///  Deposit usdc tokens from  pool_vault -> user
-    fn deposit_tokens(&self, amount: u64) -> Result<()> {
+    fn withdraw_tokens(&self, amount: u64) -> Result<()> {
         let bump = self.pool.bump;
         let seeds: &[&[u8]] = &[b"pool", self.pool.authority.as_ref(), &[bump]];
         let signer_seeds = &[seeds];
@@ -113,7 +113,7 @@ pub fn unstake(ctx: Context<Unstake>, amount: u64) -> Result<()> {
     );
 
     ctx.accounts.update_user_state(amount)?;
-    ctx.accounts.deposit_tokens(amount)?;
+    ctx.accounts.withdraw_tokens(amount)?;
 
     //update state
     ctx.accounts.user_stake.amount -= amount;
