@@ -280,7 +280,6 @@ describe("LiteSVM: Staking", () => {
     })
 
     it("Claim points for stake token", () => {
-
         const ix = new TransactionInstruction({
             keys: [
                 { pubkey: staker.publicKey, isSigner: true, isWritable: false },
@@ -296,25 +295,34 @@ describe("LiteSVM: Staking", () => {
         tx.recentBlockhash = svm.latestBlockhash();
         tx.sign(staker);
 
-        // Fix: use all required fields for svm.setClock to match the Clock type
-        // svm.setClock({
-        //     unixTimestamp: BigInt(Math.floor(Date.now() / 1000)),
-        //     slot: BigInt(100),
-        //     epoch: BigInt(1),
-        //     epochStartTimestamp: BigInt(0),
-        //     leaderScheduleEpoch: BigInt(0),
-        // });
+        const secondsIn30Days = 30 * 24 * 60 * 60;
+        const now = Math.floor(Date.now() / 1000);
+        const after30Days = now + secondsIn30Days;
 
+        // read BEFORE state
+        const beforeAccInfo = svm.getAccount(userStakePda);
+        const beforeAcc = coder.accounts.decode("UserStake", Buffer.from(beforeAccInfo.data));
+        const oldLastClaim = BigInt(beforeAcc.last_claim.toString());
 
-        const res = svm.sendTransaction(tx);
-        // console.log(res.toString())
+        // warp time...
+        const c = svm.getClock();
+        svm.setClock(
+            new Clock(c.slot, c.epochStartTimestamp, c.epoch, c.leaderScheduleEpoch, BigInt(after30Days))
+        );
+        const c2 = svm.getClock();
+        const newTimestamp = BigInt(c2.unixTimestamp.toString());
+
+        svm.sendTransaction(tx);
+
+        const elapsed = newTimestamp - oldLastClaim;      // EXACT SAME as anchor 
+        const perDay = elapsed / BigInt(86400);          // integer math for day 
+        const expected = perDay * BigInt(beforeAcc.amount) * BigInt(1); // 1 = reward_rate, initialize during pool initialization
 
         const userStateInfo = svm.getAccount(userStakePda);
         const userStateAcc = coder.accounts.decode("UserStake", Buffer.from(userStateInfo.data));
-        const now = Math.floor(Date.now() / 1000); // unix timestamp
 
-        assert.equal(Number(userStateAcc.points), 0);
-        assert.equal(Number(userStateAcc.last_claim), 0)
+        assert.equal(Number(userStateAcc.last_claim), Number(c2.unixTimestamp), "Last claim would be latest timestamp");
+        assert.equal(BigInt(userStateAcc.points.toString()), expected, "Earned points on stake token after duration of time");
 
     })
 
