@@ -41,8 +41,8 @@ describe("LiteSVM: Staking", () => {
     // const makerOfferedAmount = new anchor.BN(3000 * 10 ** 6); // USDC
     // const makerExpectedAmount = new anchor.BN(6000 * 10 ** 6); // BONK
 
-    const stakedTokenAmount = new anchor.BN(3000 * 10 ** 6); //USDC
-
+    const stakedTokenAmount = new anchor.BN(5000 * 10 ** 6); //USDC
+    const unstakeSomeTokenAmount = new anchor.BN(3000 * 10 ** 6); //USDC
     before("Initialized MINT token", () => {
         const usdcMintAuthority = PublicKey.unique();
 
@@ -183,13 +183,66 @@ describe("LiteSVM: Staking", () => {
         const stakeAcc = coder.accounts.decode("UserStake", Buffer.from(stakeAccInfo.data));
         const poolAccInfo = svm.getAccount(poolPda);
         const poolAcc = coder.accounts.decode("Pool", Buffer.from(poolAccInfo.data));
+        const poolVaultInfo = svm.getAccount(poolVault);
+        const poolVaultAcc = AccountLayout.decode(poolVaultInfo.data);
 
-        assert.equal(usdcMint.toString(), poolAcc.mint.toString());
+
+        assert.equal(Number(poolVaultAcc.amount), stakedTokenAmount.toNumber(), "Staked token at pool vault account");
+        assert.equal(usdcMint.toString(), poolAcc.mint.toString(), "USDC address matches with pool mint address");
         assert.equal(poolVault.toString(), poolAcc.vault.toString());
         assert.equal(userAta.toString(), stakeAcc.user_vault_ata.toString());
         assert.equal(Number(stakeAcc.points), Number(0));
         assert.equal(stakeAcc.amount.toNumber(), stakedTokenAmount.toNumber());
         assert.equal(poolAcc.total_staked.toNumber(), stakedTokenAmount.toNumber());
+    });
+
+
+    it("UnStake some amount of USDC Token", async () => {
+        const ixArgs = {
+            amount: unstakeSomeTokenAmount
+        }
+        const data = coder.instruction.encode("unstake", ixArgs);
+
+        const ix = new TransactionInstruction({
+            keys: [
+                { pubkey: staker.publicKey, isSigner: true, isWritable: true },
+                { pubkey: poolCreator.publicKey, isSigner: false, isWritable: true },
+                { pubkey: poolPda, isSigner: false, isWritable: true },
+                { pubkey: usdcMint, isSigner: false, isWritable: false },
+                { pubkey: poolVault, isSigner: false, isWritable: true },
+                { pubkey: userStakePda, isSigner: false, isWritable: true },
+                { pubkey: userAta, isSigner: false, isWritable: true },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }
+            ],
+            programId,
+            data
+        })
+
+        const tx = new Transaction().add(ix);
+        tx.recentBlockhash = svm.latestBlockhash();
+        tx.feePayer = staker.publicKey;
+        tx.sign(staker);
+
+        const re = svm.sendTransaction(tx);
+        console.log(re.toString())
+
+        const stakeAccInfo = svm.getAccount(userStakePda);
+        const stakeAcc = coder.accounts.decode("UserStake", Buffer.from(stakeAccInfo.data));
+        const poolAccInfo = svm.getAccount(poolPda);
+        const poolAcc = coder.accounts.decode("Pool", Buffer.from(poolAccInfo.data));
+        const poolVaultInfo = svm.getAccount(poolVault);
+        const poolVaultAcc = AccountLayout.decode(poolVaultInfo.data);
+
+
+        assert.equal(Number(poolVaultAcc.amount), Number(stakedTokenAmount) - Number(unstakeSomeTokenAmount), "Unstaked token at pool vault account");
+        assert.equal(usdcMint.toString(), poolAcc.mint.toString(), "USDC address matches with pool mint address");
+        assert.equal(poolVault.toString(), poolAcc.vault.toString(), "Pool account created by creator");
+        assert.equal(userAta.toString(), stakeAcc.user_vault_ata.toString(), "User USDC token account must match with stake's account");
+        assert.equal(Number(stakeAcc.points), Number(0));
+        assert.equal(stakeAcc.amount.toNumber(), Number(stakedTokenAmount) - Number(unstakeSomeTokenAmount), "Stake token account must decrease after unstake");
+        assert.equal(poolAcc.total_staked.toNumber(), Number(stakedTokenAmount) - Number(unstakeSomeTokenAmount), " Pool token account must descrease the user's stake token amount");
     });
 
 })
