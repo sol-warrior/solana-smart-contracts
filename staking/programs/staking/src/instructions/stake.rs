@@ -58,7 +58,7 @@ pub struct Stake<'info> {
 }
 
 impl<'info> Stake<'info> {
-    fn populate_user(&mut self) -> Result<()> {
+    fn populate_user(&mut self, user_stake_bump: u8) -> Result<()> {
         let clock = Clock::get()?;
 
         let pool = &mut self.pool;
@@ -77,7 +77,8 @@ impl<'info> Stake<'info> {
             user_stake.last_claim = clock.unix_timestamp;
             user_stake.points = 0;
             user_stake.user = self.user.key();
-            user_stake.user_vault_ata = self.user_ata.key()
+            user_stake.user_vault_ata = self.user_ata.key();
+            user_stake.bump = user_stake_bump
         }
         Ok(())
     }
@@ -109,7 +110,7 @@ pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
         StakingError::InsufficientTokenBalance
     );
 
-    ctx.accounts.populate_user()?;
+    ctx.accounts.populate_user(ctx.bumps.user_stake)?;
     ctx.accounts.deposit_tokens(amount)?;
 
     // //update state
