@@ -20,4 +20,5 @@ pub struct UserStake {
     pub last_claim: i64,        // last time points were updated
     pub points: u64,            // stored points earned so far
     pub user_vault_ata: Pubkey, // user vault token account
+    pub bump: u8,
 }

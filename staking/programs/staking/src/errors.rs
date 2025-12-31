@@ -19,4 +19,7 @@ pub enum StakingError {
 
     #[msg("Invalid staking amount")]
     InvalidStakingAmount,
+
+    #[msg("Invalid unstaking amount")]
+    InvalidUnStakingAmount,
 }
