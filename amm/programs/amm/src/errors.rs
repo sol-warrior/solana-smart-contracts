@@ -1,0 +1,58 @@
+use anchor_lang::error_code;
+#[error_code]
+pub enum AmmError {
+    #[msg("DefaultError")]
+    DefaultError,
+    #[msg("Offer expired.")]
+    OfferExpired,
+    #[msg("This pool is locked.")]
+    PoolLocked,
+    #[msg("Slippage exceeded.")]
+    SlippageExceeded,
+    #[msg("Overflow detected.")]
+    Overflow,
+    #[msg("Underflow detected.")]
+    Underflow,
+    #[msg("Invalid token.")]
+    InvalidToken,
+    #[msg("Actual liquidity is less than minimum.")]
+    LiquidityLessThanMinimum,
+    #[msg("No liquidity in pool.")]
+    NoLiquidityInPool,
+    #[msg("Bump error.")]
+    BumpError,
+    #[msg("Curve error.")]
+    CurveError,
+    #[msg("Fee is greater than 100%. This is not a very good deal.")]
+    InvalidFee,
+    #[msg("Invalid update authority.")]
+    InvalidAuthority,
+    #[msg("No update authority set.")]
+    NoAuthoritySet,
+    #[msg("Amm is immutable.")]
+    AmmIsImmutable,
+    #[msg("Invalid amount.")]
+    InvalidAmount,
+    #[msg("Invalid precision.")]
+    InvalidPrecision,
+    #[msg("Insufficient balance.")]
+    InsufficientBalance,
+    #[msg("Zero balance.")]
+    ZeroBalance,
+    #[msg("Invalid mint.")]
+    InvalidMint,
+    #[msg("Invalid vesting schedule.")]
+    InvalidVestingSchedule,
+    #[msg("Insufficient unlocked LP tokens.")]
+    InsufficientUnlockedLp,
+    #[msg("Not the position owner.")]
+    NotPositionOwner,
+    #[msg("Position still has LP tokens.")]
+    PositionNotEmpty,
+    #[msg("Invalid pool for this position.")]
+    InvalidPool,
+    #[msg("Pool not initialized. Use initialize instruction for first deposit.")]
+    PoolNotInitialized,
+    #[msg("Initial liquidity too low. Must be greater than MINIMUM_LIQUIDITY.")]
+    InsufficientInitialLiquidity,
+}
